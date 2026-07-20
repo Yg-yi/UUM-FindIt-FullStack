@@ -40,7 +40,8 @@ UUM-FindIt-FullStack/
 ⚙️ How to Set Up Locally
 1. Clone the repository:
 ```bash
-git clone [https://github.com/Yg-yi/UUM-FindIt-FullStack.git](https://github.com/Yg-yi/UUM-FindIt-FullStack.git)
+git clone https://github.com/Yg-yi/UUM-FindIt-FullStack.git
+```
 
 2. Install Dependencies:
 •Navigate to the project directories and install required packages (e.g., via npm install where applicable).
