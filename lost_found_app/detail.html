@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item Details</title>
+
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body style="background-color: #f2ebff !important; min-height: 100vh;">
+
+    <nav class="navbar navbar-dark bg-primary sticky-top shadow-sm py-3">
+        <div class="container-fluid d-flex align-items-center">
+            
+                <a id="backButton" href="index.html" class="btn btn-outline-light rounded-pill fw-bold px-3 shadow-sm d-flex w-auto align-items-center my-auto">
+                <i class="bi bi-arrow-left me-2"></i> Back to Dashboard
+            </a>
+            
+        </div>
+    </nav>
+
+    <div class="container mt-4 pb-5">
+        
+        <h2 class="fw-bold mb-3">Item Details</h2>
+
+        <div id="loading" class="text-center mt-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="text-muted mt-2">Fetching details...</p>
+        </div>
+
+        <div id="detailCard" class="card shadow-sm border-0 d-none overflow-hidden">
+            
+            <div class="bg-light text-center p-4 border-bottom">
+                <small class="text-muted text-uppercase fw-bold mb-2 d-block">Photo Evidence</small>
+                
+                <img id="d_image" src="" class="shadow-sm bg-white p-1" style="max-width: 100%; max-height: 300px; object-fit: contain;" alt="Item Image">
+                
+                <div id="d_gallery" class="mt-3 d-flex justify-content-center flex-wrap gap-2"></div>
+
+                <div class="mt-4">
+                     <span id="d_status" class="badge bg-secondary fs-6 shadow px-3 py-2 rounded-pill">Unclaimed</span>
+                </div>
+            </div>
+
+            <div class="card-body p-4">
+                
+                <div class="mb-4">
+                    <small class="text-muted d-block text-uppercase fw-bold">Item Name</small>
+                    <h3 id="d_name" class="fw-bold mb-0 text-primary">...</h3>
+                </div>
+
+                <div class="mb-4">
+                    <div class="mb-4">
+                        <small class="text-muted d-block text-uppercase fw-bold">Category</small>
+                        <span id="d_cat" class="fw-medium">...</span>
+                    </div>
+                    
+                    <div>
+                        <small class="text-muted d-block text-uppercase fw-bold">Found Date</small>
+                        <span id="d_date" class="fw-medium">...</span>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <small class="text-muted d-block text-uppercase fw-bold">Location Found</small>
+                    <p id="d_loc" class="mb-0"><i class="bi bi-geo-alt-fill text-danger"></i> <span>...</span></p>
+                </div>
+
+                <div class="mb-4">
+                    <small class="text-muted d-block text-uppercase fw-bold">Description</small>
+                    <p id="d_desc" class="bg-light p-3 rounded">...</p>
+                </div>
+
+                <div id="contactDisplay" class="mb-4">
+    <small class="text-muted d-block text-uppercase fw-bold">Contact Finder</small>
+    <div class="bg-white p-3 rounded shadow-sm d-flex align-items-center border">
+        <i class="bi bi-telephone-fill me-3 text-success"></i>
+        <span id="d_phone" class="fw-bold fs-5 text-dark">...</span>
+        
+        <button onclick="copyPhone()" class="btn btn-sm btn-outline-primary ms-auto rounded-pill d-inline-flex align-items-center" style="font-size: 0.7rem; padding: 2px 8px; width: auto; min-width: max-content;">
+    <i class="bi bi-copy me-1" style="font-size: 0.65rem;"></i> Copy
+</button>
+    </div>
+</div>
+
+                <div class="d-grid gap-2">
+
+                    <button onclick="showQRCode()" class="btn btn-light text-primary border shadow-sm fw-bold">
+                        <i class="bi bi-qr-code"></i> Show Share QR Code
+                    </button>
+
+                    <div id="ownerActions" class="d-none d-grid gap-2">
+                        <a id="editLink" href="edit.html" class="btn btn-warning">
+                            <i class="bi bi-pencil-square"></i> Edit Item
+                        </a>
+                        <button onclick="deleteItem()" class="btn btn-outline-danger">
+                            <i class="bi bi-trash"></i> Delete Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    
+    <script>
+        // Global variables for QR Code
+        var currentItemName = "";
+        var currentContact = "";
+
+        $(document).ready(function() {
+            // This checks the URL for ?id=XX first. If not found, it checks session storage.
+            var urlParams = new URLSearchParams(window.location.search);
+            var idFromUrl = urlParams.get('id'); // Check if they arrived via QR/Link
+            var id = idFromUrl || sessionStorage.getItem("current_item_id");
+            var currentUser = localStorage.getItem("username");
+
+            // GUEST RESTRICTION 
+    // If idFromUrl exists, it means they scanned the QR code.
+    if (idFromUrl && !currentUser) {
+        $("#backButton").addClass("d-none"); // Hide back button
+        $("h2").text("Item Details"); // Change title for guests who scanned the QR code
+    }
+
+    // 2. If it's a logged-in user 
+else {
+    $("#backButton").removeClass("d-none"); // Show button
+} 
+
+            if(!id) { alert("Error: No item selected."); window.location.href = "index.html"; return; }
+
+            $.get("https://uumfindit.atwebpages.com/php/api.php?action=read_one&id=" + id, function(data) {
+                if (!data || data.error) {
+                    alert("Error: Item missing."); window.location.href = "index.html"; return;
+                }
+
+                // Save Data for QR Code
+                currentItemName = data.item_name || "Found Item";
+                currentContact = data.contact_phone || "";
+                
+                // This tells the Edit button which ID to take to the Edit page
+                $("#ownerActions a").attr("href", "edit.html?id=" + id);
+
+                $("#d_name").text(data.item_name || "Unknown");
+                $("#d_cat").text(data.category || "General");
+                $("#d_desc").text(data.description || "No description provided.");
+                $("#d_loc").text(data.location_found || "Unknown Location");
+                
+                // Display and set phone link
+                $("#d_phone").text(currentContact);
+                
+
+                if (data.date_found && data.date_found !== "0000-00-00 00:00:00") {
+                    $("#d_date").text(moment(data.date_found).format("MMM Do YYYY, h:mm a"));
+                } else {
+                    $("#d_date").text("Date unknown");
+                }
+
+                // Status Badge Logic
+                var status = data.status || "Unclaimed";
+                $("#d_status").text(status);
+                $("#d_status").removeClass("bg-secondary bg-success bg-warning text-dark");
+                if(status === "Returned") { $("#d_status").addClass("bg-success"); } 
+                else if(status === "Pending") { $("#d_status").addClass("bg-warning text-dark"); } 
+                else { $("#d_status").addClass("bg-secondary"); }
+                
+                // Image Logic
+                var realImagesStr = data.image_path; 
+                if (realImagesStr && realImagesStr !== "") {
+                    var photos = realImagesStr.split(",");
+                    $("#d_image").attr("src", photos[0]).addClass("rounded");
+                    if(photos.length > 1) {
+                        var galleryHtml = "";
+                        photos.forEach((path, index) => {
+                             galleryHtml += `<img src="${path}" class="rounded shadow-sm border" style="width: 60px; height: 60px; object-fit: cover; cursor: pointer;" onclick="$('#d_image').attr('src', this.src)">`;
+                        });
+                        $("#d_gallery").html(galleryHtml);
+                    }
+                } else {
+                    var seedName = data.item_name || "default";
+                    $("#d_image").attr("src", `https://api.dicebear.com/7.x/identicon/svg?seed=${seedName}`).addClass("rounded-circle").css("width", "120px");
+                }
+
+                
+                // Ownership Check
+                var owner = (data.created_by || "").trim();
+                var viewer = (currentUser || "").trim();
+                
+                if (owner === viewer && viewer !== "") { 
+                    // IF OWNER: Show Edit/Delete, HIDE Contact Button
+                    $("#ownerActions").removeClass("d-none"); 
+                    
+                } else { 
+                    // IF NOT OWNER: Hide Edit/Delete, SHOW Contact Button
+                    $("#ownerActions").addClass("d-none"); 
+                    
+                }
+
+                $("#loading").addClass("d-none");
+                $("#detailCard").removeClass("d-none");
+            }, "json");
+        });
+
+        function copyPhone() {
+    var phoneNum = $("#d_phone").text();
+    
+    // Create a temporary input to copy the text
+    var tempInput = $("<input>");
+    $("body").append(tempInput);
+    tempInput.val(phoneNum).select();
+    document.execCommand("copy");
+    tempInput.remove();
+
+    // Show a small SweetAlert success message
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: 'Phone number copied!',
+        showConfirmButton: false,
+        timer: 1500
+    });
+}
+
+        // Function to Show QR Code with ALL details
+function showQRCode() {
+    // 1. Get the current Item ID from the session
+    // This checks the URL for ?id=XX first. If not found, it checks session storage.
+var urlParams = new URLSearchParams(window.location.search);
+var id = urlParams.get('id') || sessionStorage.getItem("current_item_id");
+    
+    // 2. Create the direct link to this detail page
+    
+    var itemUrl = window.location.origin + "/detail.html?id=" + id;
+
+    // 3. Encode the URL so the QR generator understands it
+    var encodedUrl = encodeURIComponent(itemUrl);
+    
+    // 4. Generate the QR Code using the URL instead of text
+    var qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" + encodedUrl;
+
+    Swal.fire({
+        title: 'Share Item Details',
+        text: 'Scan this to open this specific item page on another phone!',
+        imageUrl: qrUrl,
+        imageWidth: 250,
+        imageHeight: 250,
+        imageAlt: 'QR Code',
+        confirmButtonText: 'Close',
+        confirmButtonColor: '#6200ea'
+    });
+}
+
+        function deleteItem() {
+            // Get the ID from Session Storage
+            // This checks the URL for ?id=XX first. If not found, it checks session storage.
+var urlParams = new URLSearchParams(window.location.search);
+var id = urlParams.get('id') || sessionStorage.getItem("current_item_id");
+
+            if (!id) {
+                Swal.fire('Error', 'Cannot identify item to delete.', 'error');
+                return;
+            }
+
+            Swal.fire({
+                title: 'Delete Item?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: 'https://uumfindit.atwebpages.com/php/api.php',
+                        type: 'POST',
+                        data: { action: 'delete', id: id }, // Now sending the correct ID
+                        success: function(response) {
+                            Swal.fire('Deleted!', 'Your item has been deleted.', 'success')
+                            .then(() => {
+                                window.location.href = 'index.html';
+                            });
+                        },
+                        error: function() {
+                            Swal.fire('Error', 'Server failed to delete item.', 'error');
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+</body>
+</html>
