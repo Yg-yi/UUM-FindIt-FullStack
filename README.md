@@ -38,19 +38,19 @@ UUM-FindIt-FullStack/
 ```
 
 ## ⚙️ How to Set Up Locally
-1. Clone the repository:
+**1. Clone the repository:**
 ```bash
 git clone https://github.com/Yg-yi/UUM-FindIt-FullStack.git
 ```
 
-2. Install Dependencies:
+**2. Install Dependencies:**
 
    •Navigate to the project directories and install required packages (e.g., via npm install where applicable).
 
-4. Configure Environment:
+**3. Configure Environment:**
 
    •Set up your local database and configure connection variables in the environment configuration files.
 
-4. Run the Application:
+**4. Run the Application:**
 
    •Launch the backend server and open the client interface in your browser to test the system locally.
