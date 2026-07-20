@@ -37,7 +37,7 @@ UUM-FindIt-FullStack/
 └── README.md        # Project documentation
 ```
 
-⚙️ How to Set Up Locally
+## ⚙️ How to Set Up Locally
 1. Clone the repository:
 ```bash
 git clone https://github.com/Yg-yi/UUM-FindIt-FullStack.git
